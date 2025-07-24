@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{%block title%}JobCard Management System{% endblock %}</title>
+    
+    <!-- Common base CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    <!-- Page-specific CSS -->
+    {% block extra_css %}{% endblock %}
+</head>
+<body id="base_mainBody">
+  <div class="base_container">
+    <!--===========TOPBAR==================-->
+    <div class="topbar">
+      <div class="topbar-left">
+        <span class="access-a">A‑</span>
+        <span class="access-a active">A</span>
+        <span class="access-a">A+</span>
+        <span class="lang"><a href="#">English</a> | <a href="#">हिन्दी</a></span>
+      </div>
+      <div class="topbar-right">
+        <form class="search-form">
+          <input class ="top_search" type="text" placeholder="Search CRRI ...">
+          <button type="submit">🔍</button>
+        </form>
+      </div>
+    </div>
+
+    <header class="base_header">
+        <div class="jobcard">
+            <h2 class="jobcard-text" onclick=  "window.location.href='/'">JobCard System</h2>
+            <img class="logo_csir" src="{{ url_for('static', filename='icons/crripng.png') }}" alt="cssir logo">
+          <div class="right">
+    <ul>
+        <li><a href="https://www.facebook.com/CRRI.INDIA/" target="_blank"><img src="{{ url_for('static', filename='icons/facebook.svg') }}" alt="Facebook"></a></li>
+        <li><a href="https://twitter.com/CSIRCRRI" target="_blank"><img src="{{ url_for('static', filename='icons/twitter.svg') }}" alt="Twitter"></a></li>
+        <li><a href="https://www.youtube.com/channel/UC5dVitAkljw6i-0S9rXEqAjw" target="_blank"><img src="{{ url_for('static', filename='icons/youtube.svg') }}" alt="YouTube"></a></li>
+        <li><a href="https://instagram.com/csircrri" target="_blank"><img src="{{ url_for('static', filename='icons/instagram.svg') }}" alt="Instagram"></a></li>
+        <li><a href="https://www.linkedin.com/in/crri-india/" target="_blank"><img src="{{ url_for('static', filename='icons/linkedin.svg') }}" alt="LinkedIn"></a></li>
+    </ul>
+</div>
+
+            
+        </div>
+    </header>
+    <div class="accent-bar"></div>
+
+    {%block content%}
+    <div class="mainsite">
+        <img class="logo" src="https://crridom.gov.in/sites/default/files/color/mayo-1cd06d66/logo.png" alt="CRRI logo">
+        <a href="https://crridom.gov.in/" class="name">
+            <h1 class="siteslogan">CSIR - Central Road Research Institute</h1><br><h1 class="siteslogan">सीएसआईआर - केंद्रीय सड़क अनुसंधान संस्थान</h1>
+        </a>
+    </div>
+
+
+
+    <div class="main-content">
+        <div class="box" onclick="location.href='/user'">User Portal</div>
+        <a href="{{ url_for('admin') }}" target="_blank"><div class="box">Admin Panel</div></a> <!--opens in newtab-->
+        <div class="box" onclick="location.href='/officer'">Officer Dashboard</div>
+    </div>
+
+<div class="announcement">
+  <span>Latest Announcement:</span>Check CRRI main website for all updates and announcements.<strong></strong>.
+
+</div>
+
+{%endblock%}
+
+    <footer class="footer-crri">
+  <div class="footer-links">
+    <div class="link-column">
+      <ul>
+        <li><a href="#">Website Policies</a></li>
+        <li><a href="#">Help</a></li>
+        <li><a href="https://crridom.gov.in/feedback">Feedback</a></li>
+        <li><a href="#">Contact Us</a></li>
+        <li><a href="#">Web Information Manager</a></li>
+      </ul>
+    </div>
+    <div class="link-column">
+      <ul>
+        <li><a href="#">Public Grievances</a></li>
+        <li><a href="#">Terms & Conditions</a></li>
+        <li><a href="#">Tenders</a></li>
+        <li><a href="#">CSIR Directory</a></li>
+        <li><a href="#">Forms</a></li>
+      </ul>
+    </div>
+    <div class="link-column">
+      <ul>
+        <li><a href="#">FAQ</a></li>
+        <li><a href="#">Knowledge Resource Centre</a></li>
+        <li><a href="#">Notifications</a></li>
+        <li><a href="#">Disclaimer</a></li>
+        <li><a href="#">COVID Guidelines</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>Content owned & provided by CSIR - Central Road Research Institute (CRRI)
+<br>
+Delhi - Mathura Road, PO CRRI, New Delhi - 110025 INDIA</p>
+    <p>Developed & Maintained by Computer Center & Networking Division, CRRI</p>
+    <p>An ISO 9001-2015 Certified Institute</p>
+    
+  </div>
+</footer>
+</div>
+    
+   {% block scripts %}
+<script>
+  const mainBody = document.getElementById("mainBody");
+  const buttons = document.querySelectorAll(".access-a");
+  let fontSize = 16;
+
+  buttons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      if (btn.textContent === "A-") {
+        fontSize = Math.max(12, fontSize - 2);
+      } else if (btn.textContent === "A") {
+        fontSize = 16;
+      } else if (btn.textContent === "A+") {
+        fontSize = Math.min(24, fontSize + 2);
+      }
+      mainBody.style.fontSize = fontSize + "px";
+
+      // Toggle active class
+      buttons.forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+    });
+  });
+</script>
+<!-- Load jQuery offline -->
+<script src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
+
+<!-- Then load your custom script -->
+<script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+
+
+{% endblock %}
+
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
