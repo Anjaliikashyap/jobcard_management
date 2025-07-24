@@ -50,13 +50,17 @@ function generateRequestCard(job) {
     };
 
     return `
-        <div class="request-card" data-status="${job.status}" onclick="viewRequestDetails('${job._id}')">
+        <div class="request-card" data-status="${job.status}"">
             <div class="request-header">
                 <div>
                     <div class="request-id">${job._id}</div>
                     <div class="request-date">${new Date(job.submission_date).toLocaleString()}</div>
                 </div>
-                <span class="status-badge ${statusClasses[job.status]}">${statusText[job.status]}</span>
+                <div class ="right-header">
+                <span class ="complete-btn" id ="complete-btn" onclick="completeJob('${job._id}')"> COMPLETED</span>
+                    <span class ="reject-btn" id ="reject-btn" onclick="rejectJob('${job._id}')"> REJECT</span>
+                    <span class="status-badge ${statusClasses[job.status]}">${statusText[job.status]}</span>
+                </div>
             </div>
             
             <div class="request-details">
@@ -199,6 +203,68 @@ function initDashboard() {
     // Load data
     fetchOfficerJobs();
 }
+
+// reject job
+function rejectJob(jobId) {
+    const job = officerJobs.find(j => j._id === jobId); // Use correct list
+
+    if (job) {
+        job.status = 'rejected';
+
+        fetch(`/api/jobs/${jobId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ status: 'rejected' })
+        })
+        .then(response => {
+            if (!response.ok) throw new Error('Failed to update job status');
+            return response.json();
+        })
+        .then(updatedJob => {
+            showAlert('Job status updated to rejected', 'success');
+            fetchOfficerJobs(); // Refresh data
+        })
+        .catch(error => {
+            console.error('Error updating job:', error);
+            showAlert('Failed to update job status', 'danger');
+        });
+    } else {
+        showAlert('Job not found in list', 'warning');
+    }
+}
+function completeJob(jobId) {
+    const job = officerJobs.find(j => j._id === jobId); // Use correct list
+
+    if (job) {
+        job.status = 'completed';
+
+        fetch(`/api/jobs/${jobId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ status: 'completed' })
+        })
+        .then(response => {
+            if (!response.ok) throw new Error('Failed to update job status');
+            return response.json();
+        })
+        .then(updatedJob => {
+            showAlert('Job status updated to completed', 'success');
+            fetchOfficerJobs(); // Refresh data
+        })
+        .catch(error => {
+            console.error('Error updating job:', error);
+            showAlert('Failed to update job status', 'danger');
+        });
+    } else {
+        showAlert('Job not found in list', 'warning');
+    }
+}
+
+
 
 // Initialize when page loads
 document.addEventListener('DOMContentLoaded', initDashboard);

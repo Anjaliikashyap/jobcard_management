@@ -22,6 +22,35 @@ body {
     gap: 15px;
 }
 
+
+
+
+section {
+  margin-top: 20px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
+
+.center-text {
+  text-align: center;
+}
+
+.underline {
+  text-decoration: underline;
+}
+
+.logo {
+  height: 80px;
+  display: block;
+  margin: 0 auto 20px;
+}
+
+
+
+
+
+
 .header-left h1 {
     margin: 0;
     font-size: 1.8rem;

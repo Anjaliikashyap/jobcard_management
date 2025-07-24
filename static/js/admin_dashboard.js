@@ -687,76 +687,116 @@ function filterJobs() {
     loadJobsTable(filtered);
 }
 
-// function viewJob(jobId) {
-//     const job = jobRequests.find(j => j._id === jobId);
-//     if (job) {
-//         alert(`Job Details:\n\nEmployee: ${job.user_name} (${job.emp_id})\nDivision: ${job.division}\nMachine: ${job.machine_type}\nServices: ${job.services.join(', ')}\nStatus: ${job.status}\nPriority: ${job.priority}\nAssigned To: ${job.assignedTo}`);
-//     }
-// }
 
-function viewJob(jobId) {
-    const job = jobRequests.find(j => j._id === jobId);
-    if (job) {
-        // Build the details string by looping through job properties
-        let details = "Job Details:\n\n";
-        
-        for (const [key, value] of Object.entries(job)) {
-            // Skip internal MongoDB _id field if you don't want to show it
-            if (key === '_id') continue;
-            
-            // Format array values (like services)
-            const displayValue = Array.isArray(value) 
-                ? value.join(', ') 
-                : value;
-                
-            // Convert key to readable format (optional)
-            const readableKey = key.replace(/_/g, ' ')
-                                 .replace(/\b\w/g, l => l.toUpperCase());
-            
-            details += `${readableKey}: ${displayValue}\n`;
-        }
-        
-        alert(details);
-        
-        // Alternatively generate PDF with all details
-        generateJobPDF(job);
-    }
+function closeViewJobModal() {
+  document.getElementById("viewJobModal").style.display = "none";
 }
 
-function generateJobPDF(job) {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    
-    let yPosition = 20;
-    
-    // Title
-    doc.setFontSize(18);
-    doc.text('Job Details', 105, 15, { align: 'center' });
-    doc.setFontSize(12);
-    
-    // Loop through all job properties
-    for (const [key, value] of Object.entries(job)) {
-        if (key === '_id') continue;
-        
-        const readableKey = key.replace(/_/g, ' ')
-                             .replace(/\b\w/g, l => l.toUpperCase());
-        
-        const displayValue = Array.isArray(value) 
-            ? value.join(', ') 
-            : value;
-        
-        doc.text(`${readableKey}: ${displayValue}`, 15, yPosition);
-        yPosition += 10;
-        
-        // Add new page if we're at the bottom
-        if (yPosition > 280) {
-            doc.addPage();
-            yPosition = 20;
-        }
-    }
-    
-    // Save the PDF
-    doc.save(`job_details_${job.emp_id || job._id}.pdf`);
+
+function viewJob(jobId) {
+  const job = jobRequests.find(j => j._id === jobId);
+  if (!job) return;
+
+  const submissionDate = new Date(job.submission_date);
+  const estimatedDate = new Date(submissionDate);
+  estimatedDate.setDate(submissionDate.getDate() + 15);
+  const formatDate = (date) => date.toISOString().split("T")[0];
+
+  const modalContent = `
+    <div class="modal-content" id="printableJobContent">
+      <span class="close" onclick="closeViewJobModal()">&times;</span>
+      
+      <div class="header">
+        <img src="https://crridom.gov.in/sites/default/files/color/mayo-1cd06d66/logo.png" alt="CSIR-CRRI Logo" class="logo">
+        <h2 class="center-text">CSIR - CENTRAL ROAD RESEARCH INSTITUTE</h2>
+        <h4 class="center-text">(A Constituent of Council of Scientific & Industrial Research)</h4>
+        <h3 class="center-text underline">Job Request Details</h3>
+        <h4 class="center-text underline">${job._id}</h4>
+      </div>
+
+      <div class="section">
+        <h4>User Details</h4>
+        <p><strong>Employee Name:</strong> ${job.user_name}</p>
+        <p><strong>Employee ID:</strong> ${job.emp_id}</p>
+        <p><strong>Division:</strong> ${job.division}</p>
+        <p><strong>Email:</strong> ${job.email}</p>
+        <p><strong>Location:</strong> ${job.location}</p>
+      </div>
+
+      <div class="section">
+        <h4>Machine Details</h4>
+        <p><strong>Machine Type:</strong> ${job.machine_type}</p>
+        <p><strong>Model No:</strong> ${job.model_no}</p>
+        <p><strong>Serial No:</strong> ${job.serial_no}</p>
+        <p><strong>Project No:</strong> ${job.project_no}</p>
+      </div>
+
+      <div class="section">
+        <h4>Service Details</h4>
+        <p><strong>Services Requested:</strong> ${job.services.join(", ")}</p>
+        <p><strong>Status:</strong> ${job.status}</p>
+        <p><strong>Priority:</strong> ${job.priority}</p>
+        <p><strong>Assigned To:</strong> ${job.assignedTo || "Not Assigned"}</p>
+      </div>
+
+      <div class="section">
+        <h4>Date Details</h4>
+        <p><strong>Submission Date:</strong> ${formatDate(submissionDate)}</p>
+        <p><strong>Estimated Completion Date:</strong> ${formatDate(estimatedDate)}</p>
+      </div>
+
+      <div class="modal-buttons">
+        <button class="btn-secondary" onclick="closeViewJobModal()">Close</button>
+        <button class="btn-primary" onclick="printJobDetails()">🖨️ Print to PDF</button>
+      </div>
+    </div>
+  `;
+
+  const modal = document.getElementById("viewJobModal");
+  modal.innerHTML = modalContent;
+  modal.style.display = "block";
+}
+
+
+function printJobDetails() {
+  const printContents = document.getElementById("printableJobContent").innerHTML;
+  const printWindow = window.open('', '', 'height=800,width=800');
+  printWindow.document.write(`
+    <html>
+      <head>
+        <title>Job Request Details</title>
+        <style>
+          body { font-family: Arial, sans-serif; padding: 20px; }
+          .center-text { text-align: center; }
+          .underline { text-decoration: underline; }
+          .section { border: 1px solid #ccc; border-radius: 8px; padding: 10px; margin-top: 20px; }
+          .logo { height: 80px; display: block; margin: 0 auto 20px; }
+          .modal-buttons { display: none; } /* hide buttons in print */
+        </style>
+      </head>
+      <body onload="window.print(); window.close();">
+        ${printContents}
+      </body>
+    </html>
+  `);
+  printWindow.document.close();
+}
+
+
+
+
+
+
+
+
+function generateServiceCheckbox(id, label, selectedServices = []) {
+  const checked = selectedServices?.includes(id) ? "checked" : "";
+  return `
+    <div class="service-item">
+      <input type="checkbox" id="${id}" disabled ${checked}>
+      <label for="${id}">${label}</label>
+    </div>
+  `;
 }
 
 

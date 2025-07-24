@@ -307,10 +307,10 @@
   .request-header {
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
+    align-items: center;
     margin-bottom: 15px;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 5px;
   }
 
   .request-id {
@@ -330,7 +330,48 @@
     font-size: 0.8rem;
     font-weight: 600;
     text-transform: uppercase;
+    margin-left: 15px;
+  
   }
+
+   .reject-btn {
+    color:white;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    background-color: red;
+    transform: ease 0.3s;
+
+    
+  }
+  .reject-btn:hover {
+    background-color: darkred;
+    transform: translateY(-2px);
+  }
+
+ .complete-btn {
+    color:white;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    background-color: rgb(22, 188, 22);
+    transform: ease 0.3s;
+
+    
+  }
+  .complete-btn:hover {
+    background-color: darkgreen;
+    transform: translateY(-2px);
+  }
+
+
+
+
+
 
   .status-pending {
     background: rgba(241, 196, 15, 0.2);
