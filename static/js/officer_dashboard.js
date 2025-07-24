@@ -5,6 +5,28 @@ function goTo(element) {
 let officerJobs = [];
 let filteredRequests = [];
 let currentFilter = 'all';
+let selectedRejectJobId = null;
+
+let remark_modal = `<div id="rejectRemarkModal" class="modal">
+        <div class="modal-content">
+          <span class="close" onclick="closeRejectRemarkModal()">&times;</span>
+          <h3>📝 Provide Rejection Remark</h3>
+
+          <textarea id="rejectRemarkInput" rows="4" placeholder="Enter reason for rejection..."
+            style="width: 100%; padding: 10px; border-radius: 5px;"></textarea>
+
+          <div class="modal-buttons" style="margin-top: 15px;">
+            <button class="btn-secondary" onclick="closeRejectRemarkModal()">Cancel</button>
+            <button class="btn-primary" onclick="confirmReject()">Submit Remark</button>
+          </div>
+        </div>
+      </div>`
+
+
+
+
+
+
 
 // Fetch officer's jobs from backend
 async function fetchOfficerJobs() {
@@ -12,7 +34,7 @@ async function fetchOfficerJobs() {
         const response = await fetch('/get_officer_jobs');
         if (!response.ok) throw new Error('Failed to fetch jobs');
         const data = await response.json();
-        
+
         if (data.success) {
             officerJobs = data.jobs;
             filteredRequests = [...officerJobs];
@@ -50,15 +72,25 @@ function generateRequestCard(job) {
     };
 
     return `
+
+
+    
+
+
+
+
         <div class="request-card" data-status="${job.status}"">
+            ${remark_modal}
             <div class="request-header">
                 <div>
                     <div class="request-id">${job._id}</div>
                     <div class="request-date">${new Date(job.submission_date).toLocaleString()}</div>
                 </div>
                 <div class ="right-header">
-                <span class ="complete-btn" id ="complete-btn" onclick="completeJob('${job._id}')"> COMPLETED</span>
-                    <span class ="reject-btn" id ="reject-btn" onclick="rejectJob('${job._id}')"> REJECT</span>
+                 ${job.status === 'processing' ? `
+          <span class="complete-btn" id="complete-btn" onclick="completeJob('${job._id}')">COMPLETED</span>
+          <span class="reject-btn" id="reject-btn" onclick="rejectJob('${job._id}')">REJECT</span>
+        ` : ''}
                     <span class="status-badge ${statusClasses[job.status]}">${statusText[job.status]}</span>
                 </div>
             </div>
@@ -101,7 +133,7 @@ function generateRequestCard(job) {
 // Render requests
 function renderRequests(requests = filteredRequests) {
     const container = document.getElementById('requestsList');
-    
+
     if (!requests.length) {
         container.innerHTML = `
             <div class="no-results">
@@ -112,31 +144,31 @@ function renderRequests(requests = filteredRequests) {
         `;
         return;
     }
-    
+
     container.innerHTML = requests.map(job => generateRequestCard(job)).join('');
 }
 
 // Update statistics
 function updateStats() {
     document.getElementById('totalCount').textContent = officerJobs.length;
-    document.getElementById('pendingCount').textContent = 
+    document.getElementById('pendingCount').textContent =
         officerJobs.filter(j => j.status === 'pending').length;
-    document.getElementById('progressCount').textContent = 
+    document.getElementById('progressCount').textContent =
         officerJobs.filter(j => j.status === 'processing').length;
-    document.getElementById('completedCount').textContent = 
+    document.getElementById('completedCount').textContent =
         officerJobs.filter(j => j.status === 'completed').length;
 }
 
 // Filter requests
 function filterRequests(status) {
     currentFilter = status;
-    
-    document.querySelectorAll('.filter-btn').forEach(btn => 
+
+    document.querySelectorAll('.filter-btn').forEach(btn =>
         btn.classList.remove('active'));
     event.target.classList.add('active');
 
-    filteredRequests = status === 'all' 
-        ? [...officerJobs] 
+    filteredRequests = status === 'all'
+        ? [...officerJobs]
         : officerJobs.filter(job => job.status === status);
 
     const searchTerm = document.getElementById('searchInput').value.trim();
@@ -146,7 +178,7 @@ function filterRequests(status) {
 // Search functionality
 function applySearch(term) {
     const searchTerm = term.toLowerCase();
-    const results = filteredRequests.filter(job => 
+    const results = filteredRequests.filter(job =>
         job._id.toLowerCase().includes(searchTerm) ||
         (job.model_no && job.model_no.toLowerCase().includes(searchTerm)) ||
         job.services.some(s => s.toLowerCase().includes(searchTerm))
@@ -165,7 +197,7 @@ async function viewRequestDetails(jobId) {
     try {
         const response = await fetch(`/get_officer_job/${jobId}`);
         const job = await response.json();
-        
+
         if (job) {
             alert(`Request Details:\n\nID: ${job._id}\nStatus: ${job.status}\nMachine: ${job.machine_type}\nModel: ${job.model_no}\n\nServices:\n${job.services.join('\n')}`);
         } else {
@@ -190,10 +222,10 @@ function showAlert(message, type) {
 function initDashboard() {
     // Set up user avatar
     const nameElement = document.getElementById("user-name");
-    const fullName = nameElement.textContent.replace(/\w\S*/g, 
+    const fullName = nameElement.textContent.replace(/\w\S*/g,
         w => w[0].toUpperCase() + w.slice(1).toLowerCase());
     nameElement.textContent = fullName;
-    
+
     const initials = fullName.split(/\s+/)
         .map(n => n[0])
         .join('')
@@ -206,34 +238,52 @@ function initDashboard() {
 
 // reject job
 function rejectJob(jobId) {
-    const job = officerJobs.find(j => j._id === jobId); // Use correct list
+    selectedRejectJobId = jobId; // Store the job ID
+    document.getElementById("rejectRemarkInput").value = ""; // Clear old remark
+    document.getElementById("rejectRemarkModal").style.display = "block";
+}
+function confirmReject() {
+    const remark = document.getElementById("rejectRemarkInput").value.trim();
+
+    if (!remark) {
+        alert("Please provide a remark before rejecting.");
+        return;
+    }
+
+    const job = officerJobs.find(j => j._id === selectedRejectJobId);
 
     if (job) {
         job.status = 'rejected';
+        job.reject_remark = remark;
 
-        fetch(`/api/jobs/${jobId}`, {
+        fetch(`/api/jobs/${selectedRejectJobId}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ status: 'rejected' })
+            body: JSON.stringify({ status: 'rejected', reject_remark: remark })
         })
-        .then(response => {
-            if (!response.ok) throw new Error('Failed to update job status');
-            return response.json();
-        })
-        .then(updatedJob => {
-            showAlert('Job status updated to rejected', 'success');
-            fetchOfficerJobs(); // Refresh data
-        })
-        .catch(error => {
-            console.error('Error updating job:', error);
-            showAlert('Failed to update job status', 'danger');
-        });
+            .then(response => {
+                if (!response.ok) throw new Error('Failed to update job status');
+                return response.json();
+            })
+            .then(updatedJob => {
+                showAlert('Job rejected with remark', 'success');
+                fetchOfficerJobs();
+                closeRejectRemarkModal();
+            })
+            .catch(error => {
+                console.error('Error rejecting job:', error);
+                showAlert('Failed to reject job', 'danger');
+            });
     } else {
-        showAlert('Job not found in list', 'warning');
+        showAlert('Job not found', 'warning');
     }
 }
+function closeRejectRemarkModal() {
+    document.getElementById("rejectRemarkModal").style.display = "none";
+}
+
 function completeJob(jobId) {
     const job = officerJobs.find(j => j._id === jobId); // Use correct list
 
@@ -247,18 +297,18 @@ function completeJob(jobId) {
             },
             body: JSON.stringify({ status: 'completed' })
         })
-        .then(response => {
-            if (!response.ok) throw new Error('Failed to update job status');
-            return response.json();
-        })
-        .then(updatedJob => {
-            showAlert('Job status updated to completed', 'success');
-            fetchOfficerJobs(); // Refresh data
-        })
-        .catch(error => {
-            console.error('Error updating job:', error);
-            showAlert('Failed to update job status', 'danger');
-        });
+            .then(response => {
+                if (!response.ok) throw new Error('Failed to update job status');
+                return response.json();
+            })
+            .then(updatedJob => {
+                showAlert('Job status updated to completed', 'success');
+                fetchOfficerJobs(); // Refresh data
+            })
+            .catch(error => {
+                console.error('Error updating job:', error);
+                showAlert('Failed to update job status', 'danger');
+            });
     } else {
         showAlert('Job not found in list', 'warning');
     }

@@ -598,7 +598,7 @@ function loadJobsTable(jobs = jobRequests) {
                     <td><strong>${job.user_name}</strong><br><small>${job.emp_id}</small></td>
                     <td>${job.submission_date}</td>
                     <td>${job.machine_type}</td>
-                    <td><span class="job-status status-${job.status}">${job.status}</span></td>
+                    <td><span  onclick="showRejectRemarkModal('${job._id}')"   class="job-status status-${job.status}">${job.status}</span></td>
                     <td><span style="color: ${job.priority === 'high' ? '#e53e3e' : job.priority === 'medium' ? '#dd6b20' : '#38a169'}">${job.priority}</span></td>
                     <td>${job.assignedTo}</td>
                     <td>
@@ -852,6 +852,20 @@ function confirmAssignment() {
             alert('Failed to assign job. Please try again.');
         });
 }
+function showRejectRemarkModal(jobId) {
+    selectedJobId = jobId;
+    const job = jobRequests.find(j => j._id === jobId);
+    if(job.status == 'rejected'){
+    document.getElementById('RejectRemark').style.display = 'block';
+    document.getElementById('RejectRemarkText').innerHTML =job.reject_remark;
+    }
+}
+
+function closeRejectRemarkModal() {
+    document.getElementById('RejectRemark').style.display = 'none';
+    selectedJobId = null;
+}
+
 
 function openEditModal(jobId) {
     selectedJobId = jobId;
